@@ -5,11 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --watch",
+    "test:staged": "jest",
     "prepare": "husky install"
   },
   "lint-staged": {
     "*.js": [
-      "prettier --write"
+      "prettier --write",
+      "npm run test:staged"
     ]
   },
   "keywords": [],
