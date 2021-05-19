@@ -1,19 +1,42 @@
+/* eslint-disable no-shadow */
+/* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 // eslint-disable-next-line jest/consistent-test-it
 // sut = system under testing
 
+class MissingParamError extends Error {
+  constructor(paramName) {
+    super(`Missing param: ${paramName}`);
+    this.name = 'MissingParamError';
+  }
+}
+
+class httpResponse {
+  static badRequest(paramName) {
+    return {
+      statusCode: 400,
+      body: new MissingParamError(paramName),
+    };
+  }
+
+  static serverError() {
+    return {
+      statusCode: 500,
+    };
+  }
+}
+
 class LoginRouter {
   route(httpRequest) {
     if (!httpRequest || !httpRequest.body) {
-      return {
-        statusCode: 500,
-      };
+      return httpResponse.serverError();
     }
     const { email, password } = httpRequest.body;
-    if (!email || !password) {
-      return {
-        statusCode: 400,
-      };
+    if (!email) {
+      return httpResponse.badRequest('email');
+    }
+    if (!password) {
+      return httpResponse.badRequest('password');
     }
     return {
       statusCode: 200,
@@ -32,6 +55,7 @@ describe('login Router', () => {
     };
     const httpResponse = sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(400);
+    expect(httpResponse.body).toStrictEqual(new MissingParamError('email'));
   });
 
   test('should return 400 if no password is provided', () => {
@@ -44,6 +68,7 @@ describe('login Router', () => {
     };
     const httpResponse = sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(400);
+    expect(httpResponse.body).toStrictEqual(new MissingParamError('password'));
   });
 
   test('should return 500 if no httpRequest is provided', () => {
