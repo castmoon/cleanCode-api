@@ -5,7 +5,6 @@
 // sut = system under testing
 const LoginRouter = require('./login-router');
 const MissingParamError = require('../helpers/missing-param-error');
-const httpResponse = require('../helpers/http-response');
 const UnauthorizedError = require('../helpers/unauthorized-error');
 
 const makeSut = () => {
@@ -13,9 +12,11 @@ const makeSut = () => {
     auth(email, password) {
       this.email = email;
       this.password = password;
+      return this.accessToken;
     }
   }
   const authUseCaseSpy = new AuthUseCaseSpy();
+  authUseCaseSpy.accessToken = 'valid_token';
   const sut = new LoginRouter(authUseCaseSpy);
 
   return {
@@ -81,7 +82,8 @@ describe('login Router', () => {
 
   test('should return 401 when invalid credentials are provided', () => {
     expect.hasAssertions();
-    const { sut } = makeSut();
+    const { sut, authUseCaseSpy } = makeSut();
+    authUseCaseSpy.accessToken = null;
     const httpRequest = {
       body: {
         email: 'invalid@jest.com',
@@ -91,6 +93,20 @@ describe('login Router', () => {
     const httpResponse = sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(401);
     expect(httpResponse.body).toStrictEqual(new UnauthorizedError());
+  });
+
+  test('should return 200 when valid credentials are provided', () => {
+    expect.hasAssertions();
+
+    const { sut } = makeSut();
+    const httpRequest = {
+      body: {
+        email: 'valid@jest.com',
+        password: 'valid_password',
+      },
+    };
+    const httpResponse = sut.route(httpRequest);
+    expect(httpResponse.statusCode).toBe(200);
   });
 
   test('should return 500 if no AuthUseCase is provided', () => {

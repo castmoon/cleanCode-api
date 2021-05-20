@@ -22,7 +22,10 @@ module.exports = class LoginRouter {
     if (!password) {
       return httpResponse.badRequest('password');
     }
-    this.authUseCase.auth(email, password);
-    return httpResponse.unauthorizedError();
+    const accessToken = this.authUseCase.auth(email, password);
+    if (!accessToken) {
+      return httpResponse.unauthorizedError();
+    }
+    return httpResponse.ok();
   }
 };
