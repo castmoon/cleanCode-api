@@ -1,12 +1,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable jest/prefer-expect-assertions */
 const validator = require('validator');
-
-class EmailValidator {
-  isValid(email) {
-    return validator.isEmail(email);
-  }
-}
+const EmailValidator = require('./email-validator');
 
 const makeSut = () => new EmailValidator();
 
