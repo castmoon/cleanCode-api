@@ -4,10 +4,13 @@
 // eslint-disable-next-line jest/consistent-test-it
 // sut = system under testing
 const LoginRouter = require('./login-router');
-const MissingParamError = require('../helpers/missing-param-error');
-const UnauthorizedError = require('../helpers/unauthorized-error');
-const ServerError = require('../helpers/server-error');
-const InvalidParamError = require('../helpers/invalid-param-error');
+
+const {
+  ServerError,
+  UnauthorizedError,
+  InvalidParamError,
+  MissingParamError,
+} = require('../errors');
 
 const makeEmailValidator = () => {
   class EmailValidatorSpy {
