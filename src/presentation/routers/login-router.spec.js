@@ -98,7 +98,7 @@ describe('login Router', () => {
   test('should return 200 when valid credentials are provided', () => {
     expect.hasAssertions();
 
-    const { sut } = makeSut();
+    const { sut, authUseCaseSpy } = makeSut();
     const httpRequest = {
       body: {
         email: 'valid@jest.com',
@@ -107,6 +107,9 @@ describe('login Router', () => {
     };
     const httpResponse = sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(200);
+    expect(httpResponse.body.accessToken).toStrictEqual(
+      authUseCaseSpy.accessToken,
+    );
   });
 
   test('should return 500 if no AuthUseCase is provided', () => {
