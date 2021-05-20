@@ -9,6 +9,17 @@ const UnauthorizedError = require('../helpers/unauthorized-error');
 const ServerError = require('../helpers/server-error');
 const InvalidParamError = require('../helpers/invalid-param-error');
 
+const makeEmailValidator = () => {
+  class EmailValidatorSpy {
+    isValid(email) {
+      return this.isEmailValid;
+    }
+  }
+  const emailValidatorSpy = new EmailValidatorSpy();
+  emailValidatorSpy.isEmailValid = true;
+  return emailValidatorSpy;
+};
+
 const makeAuthUseCase = () => {
   class AuthUseCaseSpy {
     async auth(email, password) {
@@ -31,12 +42,14 @@ const makeAuthUseCaseWithError = () => {
 
 const makeSut = () => {
   const authUseCaseSpy = makeAuthUseCase();
+  const emailValidatorSpy = makeEmailValidator();
   authUseCaseSpy.accessToken = 'valid_token';
-  const sut = new LoginRouter(authUseCaseSpy);
+  const sut = new LoginRouter(authUseCaseSpy, emailValidatorSpy);
 
   return {
     sut,
     authUseCaseSpy,
+    emailValidatorSpy,
   };
 };
 
@@ -170,5 +183,20 @@ describe('login Router', () => {
     };
     const httpResponse = await sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(500);
+  });
+
+  test('should return 400 if an invalid email is provided', async () => {
+    expect.hasAssertions();
+    const { sut, emailValidatorSpy } = makeSut();
+    emailValidatorSpy.isEmailValid = false;
+    const httpRequest = {
+      body: {
+        email: 'invalid@jest.com',
+        password: 'test_password',
+      },
+    };
+    const httpResponse = await sut.route(httpRequest);
+    expect(httpResponse.statusCode).toBe(400);
+    expect(httpResponse.body).toStrictEqual(new InvalidParamError('email'));
   });
 });
