@@ -1,8 +1,10 @@
 /* eslint-disable class-methods-use-this */
+const { MissingParamError } = require('../../presentation/utils/errors');
+
 class AuthUseCase {
   async auth(email) {
     if (!email) {
-      throw new Error();
+      throw new MissingParamError('email');
     }
   }
 }
@@ -12,6 +14,6 @@ describe('auth usecase', () => {
     expect.hasAssertions();
     const sut = new AuthUseCase();
     const promise = sut.auth();
-    expect(promise).rejects.toThrow();
+    expect(promise).rejects.toThrow(new MissingParamError('email'));
   });
 });
