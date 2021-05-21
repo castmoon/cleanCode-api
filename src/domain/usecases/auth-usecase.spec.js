@@ -19,17 +19,33 @@ class AuthUseCase {
   }
 }
 
+const makeSut = () => {
+  class LoadUserByEmailRepositorySpy {
+    async load(email) {
+      this.email = email;
+    }
+  }
+
+  const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy();
+  const sut = new AuthUseCase(loadUserByEmailRepositorySpy);
+
+  return {
+    sut,
+    loadUserByEmailRepositorySpy,
+  };
+};
+
 describe('auth usecase', () => {
   test('should throw if no email is provided', async () => {
     expect.hasAssertions();
-    const sut = new AuthUseCase();
+    const { sut } = makeSut();
     const promise = sut.auth();
     expect(promise).rejects.toThrow(new MissingParamError('email'));
   });
 
   test('should throw if no password is provided', async () => {
     expect.hasAssertions();
-    const sut = new AuthUseCase();
+    const { sut } = makeSut();
     const promise = sut.auth('test@jest.com');
     expect(promise).rejects.toThrow(new MissingParamError('password'));
   });
@@ -37,13 +53,7 @@ describe('auth usecase', () => {
   test('should call LoadUserByEmailRepository with correct email', async () => {
     expect.hasAssertions();
 
-    class LoadUserByEmailRepositorySpy {
-      async load(email) {
-        this.email = email;
-      }
-    }
-    const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy();
-    const sut = new AuthUseCase(loadUserByEmailRepositorySpy);
+    const { sut, loadUserByEmailRepositorySpy } = makeSut();
     const promise = await sut.auth('test@jest.com', 'test_password');
     expect(loadUserByEmailRepositorySpy.email).toBe('test@jest.com');
   });
