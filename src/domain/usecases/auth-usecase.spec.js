@@ -21,6 +21,19 @@ const makeEncrypter = () => {
   return encrypterSpy;
 };
 
+const makeTokenGenerator = () => {
+  class TokenGeneratorSpy {
+    async generate(userId) {
+      this.userId = userId;
+      return this.accessToken;
+    }
+  }
+
+  const tokenGeneratorSpy = new TokenGeneratorSpy();
+  tokenGeneratorSpy.accessToken = 'test_token';
+  return tokenGeneratorSpy;
+};
+
 const makeLoadUserByEmailRepository = () => {
   class LoadUserByEmailRepositorySpy {
     async load(email) {
@@ -30,21 +43,27 @@ const makeLoadUserByEmailRepository = () => {
   }
 
   const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy();
-  loadUserByEmailRepositorySpy.user = {};
+  loadUserByEmailRepositorySpy.user = {
+    id: 'test_id',
+    password: 'hashed_password',
+  };
   return loadUserByEmailRepositorySpy;
 };
 
 const makeSut = () => {
   const encrypterSpy = makeEncrypter();
   const loadUserByEmailRepositorySpy = makeLoadUserByEmailRepository();
-  const sut = new AuthUseCase(loadUserByEmailRepositorySpy, encrypterSpy);
-  loadUserByEmailRepositorySpy.user = {
-    password: 'hashed_password',
-  };
+  const tokenGeneratorSpy = makeTokenGenerator();
+  const sut = new AuthUseCase(
+    loadUserByEmailRepositorySpy,
+    encrypterSpy,
+    tokenGeneratorSpy,
+  );
   return {
     sut,
     loadUserByEmailRepositorySpy,
     encrypterSpy,
+    tokenGeneratorSpy,
   };
 };
 
@@ -117,5 +136,13 @@ describe('auth usecase', () => {
     expect(encrypterSpy.hashedPassword).toBe(
       loadUserByEmailRepositorySpy.user.password,
     );
+  });
+
+  test('should call TokenGenerator with correct userId', async () => {
+    expect.hasAssertions();
+
+    const { sut, loadUserByEmailRepositorySpy, tokenGeneratorSpy } = makeSut();
+    await sut.auth('test@jest.com', 'test_password');
+    expect(tokenGeneratorSpy.userId).toBe(loadUserByEmailRepositorySpy.user.id);
   });
 });
