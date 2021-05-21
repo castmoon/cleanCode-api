@@ -90,6 +90,16 @@ describe('auth usecase', () => {
     expect(loadUserByEmailRepositorySpy.email).toBe('test@jest.com');
   });
 
+  test('should throw if no dependecy is provided', async () => {
+    expect.hasAssertions();
+
+    const sut = new AuthUseCase();
+    const promise = sut.auth('test@jest.com', 'test_password');
+    expect(promise).rejects.toThrow(
+      new MissingParamError('loadUserByEmailRepository'),
+    );
+  });
+
   test('should throw if no LoadUserByEmailRepository is provided', async () => {
     expect.hasAssertions();
 
