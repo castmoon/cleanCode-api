@@ -77,20 +77,36 @@ const makeTokenGeneratorWithError = () => {
   }
 };
 
+const makeupdateAccessTokenRepository = () => {
+  class updateAccessTokenRepositorySpy {
+    async update(userId, accessToken) {
+      this.userId = userId;
+      this.accessToken = accessToken;
+    }
+  }
+
+  const updateAcessTokenRepositorySpy = new updateAccessTokenRepositorySpy();
+
+  return updateAcessTokenRepositorySpy;
+};
+
 const makeSut = () => {
   const encrypterSpy = makeEncrypter();
   const loadUserByEmailRepositorySpy = makeLoadUserByEmailRepository();
   const tokenGeneratorSpy = makeTokenGenerator();
+  const updateAccessTokenRepositorySpy = makeupdateAccessTokenRepository();
   const sut = new AuthUseCase({
     loadUserByEmailRepository: loadUserByEmailRepositorySpy,
     encrypter: encrypterSpy,
     tokenGenerator: tokenGeneratorSpy,
+    updateAccessTokenRepository: updateAccessTokenRepositorySpy,
   });
   return {
     sut,
     loadUserByEmailRepositorySpy,
     encrypterSpy,
     tokenGeneratorSpy,
+    updateAccessTokenRepositorySpy,
   };
 };
 
@@ -213,5 +229,23 @@ describe('auth usecase', () => {
       const promise = sut.auth('test@jest.com', 'test_password');
       expect(promise).rejects.toThrow();
     }
+  });
+
+  test('should call updateAccessTokenRepository with correct values', async () => {
+    expect.hasAssertions();
+
+    const {
+      sut,
+      loadUserByEmailRepositorySpy,
+      updateAccessTokenRepositorySpy,
+      tokenGeneratorSpy,
+    } = makeSut();
+    await sut.auth('test@jest.com', 'test_password');
+    expect(updateAccessTokenRepositorySpy.userId).toBe(
+      loadUserByEmailRepositorySpy.user.id,
+    );
+    expect(updateAccessTokenRepositorySpy.accessToken).toBe(
+      tokenGeneratorSpy.accessToken,
+    );
   });
 });
