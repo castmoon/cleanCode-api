@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable jest/valid-expect */
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
@@ -48,6 +49,32 @@ const makeLoadUserByEmailRepository = () => {
     password: 'hashed_password',
   };
   return loadUserByEmailRepositorySpy;
+};
+
+const makeLoadUserByEmailRepositoryWithError = () => {
+  class LoadUserByEmailRepositorySpy {
+    async load() {
+      throw new Error();
+    }
+  }
+  return new LoadUserByEmailRepositorySpy();
+};
+
+const makeEncrypterWithError = () => {
+  class EncrypterSpy {
+    async compare() {
+      throw new Error();
+    }
+  }
+  return new EncrypterSpy();
+};
+
+const makeTokenGeneratorWithError = () => {
+  class TokenGeneratorSpy {
+    async generate() {
+      throw new Error();
+    }
+  }
 };
 
 const makeSut = () => {
@@ -162,5 +189,29 @@ describe('auth usecase', () => {
     const accessToken = await sut.auth('test@jest.com', 'test_password');
     expect(accessToken).toBe(tokenGeneratorSpy.accessToken);
     expect(accessToken).toBeTruthy();
+  });
+
+  test('should throw if any dependecy throw', async () => {
+    expect.hasAssertions();
+    const loadUserByEmailRepository = makeLoadUserByEmailRepository();
+    const encrypter = makeEncrypter();
+    const suts = [].concat(
+      new AuthUseCase({
+        loadUserByEmailRepository: makeLoadUserByEmailRepositoryWithError(),
+      }),
+      new AuthUseCase({
+        loadUserByEmailRepository,
+        encrypter: makeEncrypterWithError(),
+      }),
+      new AuthUseCase({
+        loadUserByEmailRepository,
+        encrypter,
+        tokenGenerator: makeTokenGeneratorWithError(),
+      }),
+    );
+    for (const sut of suts) {
+      const promise = sut.auth('test@jest.com', 'test_password');
+      expect(promise).rejects.toThrow();
+    }
   });
 });
