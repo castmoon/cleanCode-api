@@ -90,6 +90,14 @@ const makeupdateAccessTokenRepository = () => {
   return updateAcessTokenRepositorySpy;
 };
 
+const makeUpdateAccessTokenRepositoryWithError = () => {
+  class updateAccessTokenRepositorySpy {
+    async update() {
+      throw new Error();
+    }
+  }
+};
+
 const makeSut = () => {
   const encrypterSpy = makeEncrypter();
   const loadUserByEmailRepositorySpy = makeLoadUserByEmailRepository();
@@ -211,6 +219,7 @@ describe('auth usecase', () => {
     expect.hasAssertions();
     const loadUserByEmailRepository = makeLoadUserByEmailRepository();
     const encrypter = makeEncrypter();
+    const tokenGenerator = makeTokenGenerator();
     const suts = [].concat(
       new AuthUseCase({
         loadUserByEmailRepository: makeLoadUserByEmailRepositoryWithError(),
@@ -224,7 +233,14 @@ describe('auth usecase', () => {
         encrypter,
         tokenGenerator: makeTokenGeneratorWithError(),
       }),
+      new AuthUseCase({
+        loadUserByEmailRepository,
+        encrypter,
+        tokenGenerator,
+        updateAccessTokenRepository: makeUpdateAccessTokenRepositoryWithError(),
+      }),
     );
+
     for (const sut of suts) {
       const promise = sut.auth('test@jest.com', 'test_password');
       expect(promise).rejects.toThrow();
