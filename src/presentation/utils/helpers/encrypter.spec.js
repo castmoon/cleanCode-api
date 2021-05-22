@@ -1,12 +1,7 @@
 /* eslint-disable class-methods-use-this */
 const bcrypt = require('bcrypt');
 
-class Encrypter {
-  async compare(password, hashedPassword) {
-    const isValid = await bcrypt.compare(password, hashedPassword);
-    return isValid;
-  }
-}
+const Encrypter = require('./encrypter');
 
 const makeSut = () => new Encrypter();
 
