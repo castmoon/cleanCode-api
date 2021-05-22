@@ -1,3 +1,6 @@
+/* eslint-disable jest/require-to-throw-message */
+/* eslint-disable new-cap */
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable jest/valid-expect */
 /* eslint-disable max-classes-per-file */
