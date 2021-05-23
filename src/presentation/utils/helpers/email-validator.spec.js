@@ -1,6 +1,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable jest/prefer-expect-assertions */
 const validator = require('validator');
+const MissingParamError = require('../errors/missing-param-error');
 const EmailValidator = require('./email-validator');
 
 const makeSut = () => new EmailValidator();
@@ -23,5 +24,13 @@ describe('email Validator', () => {
     const sut = makeSut();
     sut.isValid('test@jest.com');
     expect(validator.email).toStrictEqual('test@jest.com');
+  });
+
+  test('should throw if no email is provided', async () => {
+    expect.hasAssertions();
+    const sut = makeSut();
+    expect(() => {
+      sut.isValid();
+    }).toThrow(new MissingParamError('email'));
   });
 });
