@@ -7,6 +7,9 @@ class TokenGenerator {
   }
 
   async generate(id) {
+    if (!id) {
+      throw new MissingParamError('id');
+    }
     if (!this.secret) {
       throw new MissingParamError('secret');
     }
@@ -45,5 +48,12 @@ describe('token Generator', () => {
     const sut = new TokenGenerator();
     const promise = sut.generate('test_id');
     expect(promise).rejects.toThrow(new MissingParamError('secret'));
+  });
+
+  test('should throw with no id is provided', async () => {
+    expect.hasAssertions();
+    const sut = makeSut();
+    const promise = sut.generate();
+    expect(promise).rejects.toThrow(new MissingParamError('id'));
   });
 });
